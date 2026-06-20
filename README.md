@@ -1,67 +1,242 @@
-# 🩺 Demo 01: AI Agents for Medical Diagnostics
+# MediConsensus – Collaborative Medical Diagnostics Platform
 
-This demo showcases the power of the **Octochains** framework in a high-stakes, multidisciplinary medical scenario. It demonstrates how **collaborative isolated reasoning** can prevent diagnostic "tunnel vision" by having specialized AI agents independently evaluate the same patient dossier before reaching a collective consensus.
+## Overview
 
-<img width="1056" height="443" alt="364576315-b7c87bf6-dfff-42fe-b8d1-9be9e6c7ce86" src="https://github.com/user-attachments/assets/c02eff1e-70dd-4edb-b378-9baa06772276" />
+MediConsensus is an Agentic AI-powered medical diagnostics platform that leverages multiple specialized AI agents to analyze patient medical reports and generate consensus-based diagnostic insights.
 
+The system employs domain-specific medical agents such as Cardiologist, Pulmonologist, and Psychologist agents that independently evaluate medical information. Their findings are synthesized into a unified diagnostic report, demonstrating the power of multi-agent collaboration and consensus-driven decision-making.
 
 ---
 
-## Getting Started
+## Key Features
 
-Each demo project in Octochains is designed to be standalone with its own environment needs to keep the core framework lightweight.
+* Multi-Agent AI Architecture
+* Specialized Medical Diagnostic Agents
+* Parallel Agent Reasoning
+* Consensus-Based Decision Making
+* Automated Diagnostic Report Generation
+* FastAPI Web Interface
+* Markdown Report Export
+* Real-Time Medical Analysis
 
-### 1. Install Dependencies
-Navigate to this demo directory and install the specific requirements into your Python virtual environment:
+---
+
+## Agent Workflow
+
+Patient Medical Report
+↓
+Cardiologist Agent
+↓
+Pulmonologist Agent
+↓
+Psychologist Agent
+↓
+Consensus Synthesizer
+↓
+Final Diagnostic Report
+
+---
+
+## Tech Stack
+
+### AI & Agent Framework
+
+* Python
+* Groq Llama 3.3
+* Octochains
+* Agentic AI
+* Multi-Agent Systems
+
+### Backend
+
+* FastAPI
+* Uvicorn
+
+### Frontend
+
+* HTML
+* CSS
+* JavaScript
+
+### Utilities
+
+* Python Dotenv
+* Markdown Reporting
+
+---
+
+## Project Structure
+
+```text
+MediConsensus/
+│
+├── Agents/
+├── Webapp/
+│   ├── main.py
+│   ├── templates/
+│   └── static/
+│
+├── results/
+│   └── Diagnostic_Report.md
+│
+├── run_demo.py
+├── requirements.txt
+├── .env
+└── README.md
+```
+
+## Installation
+
+### Clone Repository
+
+```bash
+git clone https://github.com/Varunkurhade1674/MediConsensus-Collaborative-Medical-Diagnostics-Platform.git
+
+cd MediConsensus-Collaborative-Medical-Diagnostics-Platform
+```
+
+### Create Virtual Environment
+
+```bash
+python -m venv venv
+```
+
+### Activate Environment
+
+Windows
+
+```bash
+venv\Scripts\activate
+```
+
+Linux / macOS
+
+```bash
+source venv/bin/activate
+```
+
+### Install Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
 
-**Note:** This demo utilizes langchain and langchain-openai for agent logic.
+---
 
-### 2. Configure Environment Variables
-This demo uses openai models (like GPT-4o). You must provide an API key to run the simulation.
+## Environment Variables
 
-Create a `.env` file in this directory.
+Create a `.env` file in the root directory:
 
-Add your OpenAI API key:
+```env
+OPENAI_API_KEY=your_openai_api_key
+GROQ_API_KEY=your_groq_api_key
+```
+
+Never commit your `.env` file or API keys to GitHub.
+
+---
+
+# Running the Application
+
+## Option 1: Web Application (Recommended)
+
+Navigate to the Webapp directory:
+
 ```bash
-OPENAI_API_KEY=your_actual_api_key_here
+cd Webapp
+```
+
+Start the FastAPI server:
+
+```bash
+python -m uvicorn main:app --reload
+```
+
+Open your browser:
+
+```text
+http://127.0.0.1:8000
 ```
 
 ---
 
-## System Architecture
+## Option 2: Terminal Demo
 
-### Building the Agents
-In this demo, we define three specialized agents by inheriting from the `octochains.Agent` base class. Each agent is given a specific "Role" and "Goal" to simulate a real-world clinical team using **collaborative isolated reasoning**:
+Return to the project root directory:
 
-* **Cardiologist**: Focuses on cardiac workups, ECG, blood tests, and echocardiograms to identify structural heart issues.
-* **Psychologist**: Reviews the report for signs of anxiety, depression, or trauma that might manifest as somatic symptoms.
-* **Pulmonologist**: Identifies potential respiratory issues such as asthma, COPD, or lung infections affecting the patient's breathing.
+```bash
+cd ..
+```
 
-Each agent implements an `execute()` method. When the **Octochains Engine** runs, these methods are triggered simultaneously in parallel threads, ensuring that no agent's findings are biased by the others.
+Run the demo:
 
-### The Aggregator 
-The results from the specialists are passed to the `MultidisciplinaryTeam` aggregator. This component acts as a "Chief Justice," receiving only the collective expert reports to synthesize a final verdict.
+```bash
+python run_demo.py
+```
 
-## 📥 Input & Output Flow
+The system will:
 
-### System Input
-The system takes a raw medical report (text format) as input. By default, the `run_demo.py` script is set to analyze a case file from the `medical_reports/` directory.
+* Execute all specialist agents
+* Generate diagnostic reasoning
+* Produce a consensus diagnosis
+* Save the report in:
 
-### System Output
-* **Parallel Execution**: The engine broadcasts the patient data to all three specialists at once using the **Octochains** architecture.
-* **Expert Reports**: Each agent generates an independent analysis based on their specific domain expertise.
-* **Final Consensus**: The aggregator produces a bulleted list of the 3 most likely health issues along with clinical reasoning for each.
-* **Persistence**: The final consensus is printed to the console and saved automatically to `results/Final Report.txt`.
+```text
+results/Diagnostic_Report.md
+```
 
-### 🤝 Contributing New Demos
-We encourage the community to contribute new standalone case studies to show how **Octochains** can be used in different industries (Legal, Finance, Cybersecurity, etc.).
+---
 
-### Guidelines for New Demos:
-* **Isolated Environments**: Every new demo must have its own `requirements.txt` file for its specific dependencies.
-* **Entry Point**: Provide a clear `run_demo.py` that demonstrates the full "Broadcast -> Collaborative Isolated Reasoning -> Aggregate" flow.
-* **Data**: Include sample data (like the .txt reports in this demo) to make the example reproducible.
+## Example Use Cases
 
-> ⚠️ **Disclaimer**: This demo is for research and educational purposes only and is not intended for clinical use. It simulates a reasoning process and should not be used as a substitute for professional medical advice, diagnosis, or treatment.
+* Preliminary Medical Diagnostics
+* Clinical Decision Support
+* Multi-Specialist Case Review
+* Medical Report Analysis
+* Healthcare AI Research
+
+---
+
+## AI Concepts Demonstrated
+
+* Agentic AI
+* Multi-Agent Collaboration
+* Parallel Reasoning
+* Consensus Generation
+* Autonomous AI Workflows
+* Medical Decision Support Systems
+
+---
+
+## Resume Highlights
+
+* Built a multi-agent healthcare diagnostic platform using specialized medical AI agents.
+* Implemented parallel reasoning and consensus-based diagnosis through agent orchestration.
+* Generated diagnostic insights from medical reports using Groq-hosted LLMs.
+* Developed a FastAPI-based web interface for interactive healthcare analysis.
+
+---
+
+## Future Enhancements
+
+* Electronic Health Record (EHR) Integration
+* Medical Image Analysis
+* Doctor Feedback Loop
+* RAG-Based Medical Knowledge Retrieval
+* PDF Report Upload Support
+* Voice-Based Patient Interaction
+
+---
+
+## Author
+
+Varun Kurhade
+
+GitHub:
+https://github.com/Varunkurhade1674
+
+---
+
+## License
+
+This project is intended for educational and research purposes.
