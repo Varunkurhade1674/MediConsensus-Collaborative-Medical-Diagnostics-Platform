@@ -1,0 +1,31 @@
+{
+  "name": "mediconsensus-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.29.2",
+    "clsx": "^2.1.0",
+    "framer-motion": "^11.1.7",
+    "lucide-react": "^0.368.0",
+    "next": "^15.0.3",
+    "react": "^19.0.0-rc-66855b9609-20241106",
+    "react-dom": "^19.0.0-rc-66855b9609-20241106",
+    "tailwind-merge": "^2.2.2",
+    "zustand": "^4.5.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "@types/react": "^19.0.0-rc.1",
+    "@types/react-dom": "^19.0.0-rc.1",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.3",
+    "typescript": "^5.4.5"
+  }
+}

@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from octochains import Agent, Aggregator, Engine
 import datetime
+from pydantic import BaseModel
 
 
 
@@ -42,44 +43,50 @@ session_store = {}
 
 # --- AGENTS ---
 class Cardiologist(Agent):
-    def __init__(self, model="llama-3.3-70b-versatile"):
+    def __init__(self, model="llama-3.3-70b-versatile", api_key=None):
         super().__init__(role="Cardiologist", goal="Identify arrhythmias or structural heart issues." , input_description="Medical Report")
-        self.llm = ChatGroq(temperature=0, model=model)
+        api_key_to_use = api_key if api_key else os.environ.get("GROQ_API_KEY")
+        self.llm = ChatGroq(temperature=0, model=model, api_key=api_key_to_use)
     def execute(self, medical_report: str) -> str:
         return self.llm.invoke(prompts.CARDIOLOGIST_PROMPT.format(medical_report=medical_report)).content
 
 class Psychologist(Agent):
-    def __init__(self, model="llama-3.3-70b-versatile"):
+    def __init__(self, model="llama-3.3-70b-versatile", api_key=None):
         super().__init__(role="Psychologist", goal="Identify mental health issues.", input_description="Medical Report")
-        self.llm = ChatGroq(temperature=0, model=model)
+        api_key_to_use = api_key if api_key else os.environ.get("GROQ_API_KEY")
+        self.llm = ChatGroq(temperature=0, model=model, api_key=api_key_to_use)
     def execute(self, medical_report: str) -> str:
         return self.llm.invoke(prompts.PSYCHOLOGIST_PROMPT.format(medical_report=medical_report)).content
 
 class Pulmonologist(Agent):
-    def __init__(self, model="llama-3.3-70b-versatile"):
+    def __init__(self, model="llama-3.3-70b-versatile", api_key=None):
         super().__init__(role="Pulmonologist", goal="Identify respiratory issues.", input_description="Medical Report")
-        self.llm = ChatGroq(temperature=0, model=model)
+        api_key_to_use = api_key if api_key else os.environ.get("GROQ_API_KEY")
+        self.llm = ChatGroq(temperature=0, model=model, api_key=api_key_to_use)
     def execute(self, medical_report: str) -> str:
         return self.llm.invoke(prompts.PULMONOLOGIST_PROMPT.format(medical_report=medical_report)).content
 
 class Neurologist(Agent):
-    def __init__(self, model="llama-3.3-70b-versatile"):
+    def __init__(self, model="llama-3.3-70b-versatile", api_key=None):
         super().__init__(role="Neurologist", goal="Identify neurological issues.", input_description="Medical Report")
-        self.llm = ChatGroq(temperature=0, model=model)
+        api_key_to_use = api_key if api_key else os.environ.get("GROQ_API_KEY")
+        self.llm = ChatGroq(temperature=0, model=model, api_key=api_key_to_use)
     def execute(self, medical_report: str) -> str:
         return self.llm.invoke(prompts.NEUROLOGIST_PROMPT.format(medical_report=medical_report)).content
 
 class ChiefMedicalOfficer(Agent):
-    def __init__(self, model="llama-3.3-70b-versatile"):
+    def __init__(self, model="llama-3.3-70b-versatile", api_key=None):
         super().__init__(role="ChiefMedicalOfficer", goal="Determine which specialists are needed for the case.", input_description="Medical Report")
-        self.llm = ChatGroq(temperature=0, model=model)
+        api_key_to_use = api_key if api_key else os.environ.get("GROQ_API_KEY")
+        self.llm = ChatGroq(temperature=0, model=model, api_key=api_key_to_use)
     def execute(self, medical_report: str) -> str:
         return self.llm.invoke(prompts.SUPERVISOR_PROMPT.format(medical_report=medical_report)).content
 
 class MultidisciplinaryTeam(Aggregator):
-    def __init__(self, model="llama-3.3-70b-versatile"):
+    def __init__(self, model="llama-3.3-70b-versatile", api_key=None):
         super().__init__(role="MultidisciplinaryTeam", goal="Synthesize reports.")
-        self.llm = ChatGroq(temperature=0, model=model)
+        api_key_to_use = api_key if api_key else os.environ.get("GROQ_API_KEY")
+        self.llm = ChatGroq(temperature=0, model=model, api_key=api_key_to_use)
         
     def execute(self, agent_reports: dict) -> str:
         prompt = prompts.AGGREGATOR_PROMPT.format(
@@ -92,7 +99,7 @@ class MultidisciplinaryTeam(Aggregator):
 
 # --- ENDPOINTS ---
 @app.post("/analyze")
-async def analyze_report(file: UploadFile = File(...)):
+async def analyze_report(file: UploadFile = File(...), api_key: str = Form(None)):
     content = await file.read()
     
     if file.filename.lower().endswith(".pdf") or file.content_type == "application/pdf":
@@ -132,7 +139,7 @@ async def analyze_report(file: UploadFile = File(...)):
         loop = asyncio.get_event_loop()
         start_t = time.perf_counter()
         
-        cmo = ChiefMedicalOfficer()
+        cmo = ChiefMedicalOfficer(api_key=api_key)
         supervisor_res = await loop.run_in_executor(None, cmo.execute, patient_data)
         
         end_t = time.perf_counter()
@@ -163,10 +170,10 @@ async def analyze_report(file: UploadFile = File(...)):
         
         # 2. Instantiate and run only selected agents
         agent_mapping = {
-            "Cardiologist": Cardiologist(),
-            "Psychologist": Psychologist(),
-            "Pulmonologist": Pulmonologist(),
-            "Neurologist": Neurologist()
+            "Cardiologist": Cardiologist(api_key=api_key),
+            "Psychologist": Psychologist(api_key=api_key),
+            "Pulmonologist": Pulmonologist(api_key=api_key),
+            "Neurologist": Neurologist(api_key=api_key)
         }
         selected_agents = [agent_mapping[name] for name in active_agents_list]
         
@@ -204,7 +211,7 @@ async def analyze_report(file: UploadFile = File(...)):
             }) + "\n"
         
         # 3. Once selected agents are done, run the aggregator
-        aggregator = MultidisciplinaryTeam()
+        aggregator = MultidisciplinaryTeam(api_key=api_key)
         loop = asyncio.get_event_loop()
         start_t = time.perf_counter()
         consensus = await loop.run_in_executor(None, aggregator.execute, agent_reports)
@@ -296,13 +303,33 @@ async def download_log(session_id: str):
     
     return PlainTextResponse(content=log_content, headers=headers)
 @app.post("/chat")
-async def chat_with_team(session_id: str = Form(...), message: str = Form(...)):
+async def chat_with_team(session_id: str = Form(...), message: str = Form(...), api_key: str = Form(None)):
     context = session_store.get(session_id)
     if not context: return JSONResponse({"error": "Session not found"}, status_code=404)
     
     prompt = prompts.CHAT_PROMPT.format(traces=context['traces'], consensus=context['consensus'], message=message)
-    response = ChatGroq(temperature=0.3, model="llama-3.3-70b-versatile").invoke(prompt)
+    api_key_to_use = api_key if api_key else os.environ.get("GROQ_API_KEY")
+    response = ChatGroq(temperature=0.3, model="llama-3.3-70b-versatile", api_key=api_key_to_use).invoke(prompt)
     return {"reply": response.content}
+
+class KeyValidationRequest(BaseModel):
+    provider: str
+    api_key: str
+
+@app.post("/api/validate_key")
+async def validate_api_key(req: KeyValidationRequest):
+    try:
+        api_key = req.api_key
+        # We test with a lightweight request
+        test_client = ChatGroq(temperature=0, model="llama-3.3-70b-versatile", api_key=api_key)
+        response = test_client.invoke("Reply with 'OK'")
+        
+        if response and response.content:
+            return {"status": "success", "message": f"Successfully connected to {req.provider}"}
+        else:
+            return {"status": "error", "message": "Received empty response from provider."}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
 
 if __name__ == "__main__":
     import uvicorn

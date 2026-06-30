@@ -1,242 +1,96 @@
-# MediConsensus – Collaborative Medical Diagnostics Platform
+# MediConsensus – Collaborative Medical Diagnostics Platform (Next.js 15 + Express + MongoDB)
 
-## Overview
-
-MediConsensus is an Agentic AI-powered medical diagnostics platform that leverages multiple specialized AI agents to analyze patient medical reports and generate consensus-based diagnostic insights.
-
-The system employs domain-specific medical agents such as Cardiologist, Pulmonologist, and Psychologist agents that independently evaluate medical information. Their findings are synthesized into a unified diagnostic report, demonstrating the power of multi-agent collaboration and consensus-driven decision-making.
+This is the enterprise-grade rewrite of the **MediConsensus** platform, decoupled into a modern Next.js 15 Client app and an Express.js REST API server with MongoDB persistence and OpenRouter AI integrations.
 
 ---
 
-## Key Features
-
-* Multi-Agent AI Architecture
-* Specialized Medical Diagnostic Agents
-* Parallel Agent Reasoning
-* Consensus-Based Decision Making
-* Automated Diagnostic Report Generation
-* FastAPI Web Interface
-* Markdown Report Export
-* Real-Time Medical Analysis
-
----
-
-## Agent Workflow
-
-Patient Medical Report
-↓
-Cardiologist Agent
-↓
-Pulmonologist Agent
-↓
-Psychologist Agent
-↓
-Consensus Synthesizer
-↓
-Final Diagnostic Report
-
----
-
-## Tech Stack
-
-### AI & Agent Framework
-
-* Python
-* Groq Llama 3.3
-* Octochains
-* Agentic AI
-* Multi-Agent Systems
-
-### Backend
-
-* FastAPI
-* Uvicorn
-
-### Frontend
-
-* HTML
-* CSS
-* JavaScript
-
-### Utilities
-
-* Python Dotenv
-* Markdown Reporting
-
----
-
-## Project Structure
+## 1. Directory Structure
 
 ```text
-MediConsensus/
-│
-├── Agents/
-├── Webapp/
-│   ├── main.py
-│   ├── templates/
-│   └── static/
-│
-├── results/
-│   └── Diagnostic_Report.md
-│
-├── run_demo.py
-├── requirements.txt
-├── .env
-└── README.md
-```
-
-## Installation
-
-### Clone Repository
-
-```bash
-git clone https://github.com/Varunkurhade1674/MediConsensus-Collaborative-Medical-Diagnostics-Platform.git
-
-cd MediConsensus-Collaborative-Medical-Diagnostics-Platform
-```
-
-### Create Virtual Environment
-
-```bash
-python -m venv venv
-```
-
-### Activate Environment
-
-Windows
-
-```bash
-venv\Scripts\activate
-```
-
-Linux / macOS
-
-```bash
-source venv/bin/activate
-```
-
-### Install Dependencies
-
-```bash
-pip install -r requirements.txt
+├── backend/
+│   ├── config/             # Cloudinary, Mongoose database configs
+│   ├── controllers/        # Express request routers for authentication, report analysis, overrides, analytics
+│   ├── middleware/         # Token validation and rate limiting
+│   ├── models/             # Patient details, AI results, and Consensus reports Schemas
+│   ├── routes/             # REST Endpoints mapping
+│   ├── tests/              # End-to-end integration tests script
+│   ├── utils/              # OpenRouter AI query wrapper & Mock Fallback databases
+│   ├── server.js           # Server Bootstrap Entrypoint
+│   └── package.json
+└── frontend/
+    ├── src/
+    │   ├── app/            # Next.js 15 client layout, landing page, login triggers, and diagnose panels
+    │   ├── components/     # UI elements, Accordions, Form inputs (Tailwind and glass layouts)
+    │   ├── hooks/          # Zustand State hook for user auth
+    │   ├── types/          # Strict TypeScript interface declarations
+    │   └── globals.css     # CSS Styling variables
+    ├── tsconfig.json
+    ├── tailwind.config.ts
+    └── package.json
 ```
 
 ---
 
-## Environment Variables
+## 2. Installation and Local Setup
 
-Create a `.env` file in the root directory:
+Ensure you have **Node.js v18+** installed. You will need to spin up the Backend server and Frontend app in parallel.
 
-```env
-OPENAI_API_KEY=your_openai_api_key
-GROQ_API_KEY=your_groq_api_key
-```
+### A. Clone and Setup Environment
+1.  Clone this repository to your workspace.
+2.  Review/Create `backend/.env` based on `backend/.env.example`.
+    ```env
+    PORT=5000
+    MONGO_URI=mongodb://localhost:27017/mediconsensus
+    JWT_SECRET=mediconsensus_secret
+    OPENROUTER_API_KEY=your_key_here  # Fallback mocks are enabled if key is empty
+    ```
 
-Never commit your `.env` file or API keys to GitHub.
+### B. Launch Mongoose Backend Database Server
+1.  Navigate to the `backend` folder:
+    ```bash
+    cd backend
+    ```
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+3.  **Seed the database** (Creates default practitioner credentials, patient logs, and audit logs):
+    ```bash
+    npm run seed
+    ```
+4.  Start development server:
+    ```bash
+    npm run dev
+    ```
+    The API console will boot at `http://localhost:5000`.
 
----
-
-# Running the Application
-
-## Option 1: Web Application (Recommended)
-
-Navigate to the Webapp directory:
-
-```bash
-cd Webapp
-```
-
-Start the FastAPI server:
-
-```bash
-python -m uvicorn main:app --reload
-```
-
-Open your browser:
-
-```text
-http://127.0.0.1:8000
-```
-
----
-
-## Option 2: Terminal Demo
-
-Return to the project root directory:
-
-```bash
-cd ..
-```
-
-Run the demo:
-
-```bash
-python run_demo.py
-```
-
-The system will:
-
-* Execute all specialist agents
-* Generate diagnostic reasoning
-* Produce a consensus diagnosis
-* Save the report in:
-
-```text
-results/Diagnostic_Report.md
-```
+### C. Launch Next.js 15 Client
+1.  Open another terminal window and navigate to the `frontend` folder:
+    ```bash
+    cd frontend
+    ```
+2.  Install dependencies:
+    ```bash
+    npm install
+    ```
+3.  Start dev client:
+    ```bash
+    npm run dev
+    ```
+    Open your browser and navigate to `http://localhost:3000`.
 
 ---
 
-## Example Use Cases
-
-* Preliminary Medical Diagnostics
-* Clinical Decision Support
-* Multi-Specialist Case Review
-* Medical Report Analysis
-* Healthcare AI Research
+## 3. Login Sandbox Credentials
+After running the seeder, you can log in using these preset credentials:
+*   **Email**: `drsmith@mediconsensus.com`
+*   **Password**: `password123`
 
 ---
 
-## AI Concepts Demonstrated
-
-* Agentic AI
-* Multi-Agent Collaboration
-* Parallel Reasoning
-* Consensus Generation
-* Autonomous AI Workflows
-* Medical Decision Support Systems
-
----
-
-## Resume Highlights
-
-* Built a multi-agent healthcare diagnostic platform using specialized medical AI agents.
-* Implemented parallel reasoning and consensus-based diagnosis through agent orchestration.
-* Generated diagnostic insights from medical reports using Groq-hosted LLMs.
-* Developed a FastAPI-based web interface for interactive healthcare analysis.
-
----
-
-## Future Enhancements
-
-* Electronic Health Record (EHR) Integration
-* Medical Image Analysis
-* Doctor Feedback Loop
-* RAG-Based Medical Knowledge Retrieval
-* PDF Report Upload Support
-* Voice-Based Patient Interaction
-
----
-
-## Author
-
-Varun Kurhade
-
-GitHub:
-https://github.com/Varunkurhade1674
-
----
-
-## License
-
-This project is intended for educational and research purposes.
+## 4. Run API Tests
+Verify backend API configurations:
+1.  In the `backend` folder, run:
+    ```bash
+    node tests/api.test.js
+    ```
