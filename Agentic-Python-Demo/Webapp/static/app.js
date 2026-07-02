@@ -160,6 +160,10 @@ function getDotRole(agentName) {
 }
 
 async function handleFile(file) {
+    if (isDemoMode) {
+        alert("⚠️ Live analysis is disabled in Demo Mode because the API has not been validated or integrated.\n\nPlease enter and validate a valid API key in the configuration modal to run diagnostic reports.");
+        return;
+    }
     document.getElementById('n-doc').classList.remove('pulse');
     const pageEl = document.querySelector('.page');
     if (pageEl) {
@@ -472,6 +476,13 @@ async function sendMessage() {
     addBubble(msg, "user"); 
     chatInput.value = ""; 
     
+    if (isDemoMode) {
+        setTimeout(() => {
+            addBubble("⚠️ Chat data cannot be generated in Demo Mode because the API is not tested or integrated.", "system");
+        }, 500);
+        return;
+    }
+    
     const thinkingId = Date.now();
     addBubble("Team is typing...", `system thinking-${thinkingId}`);
     
@@ -508,16 +519,16 @@ const toggleVisibilityBtn = document.getElementById('toggle-key-visibility');
 const toastContainer = document.getElementById('toast-container');
 
 let savedApiKey = localStorage.getItem('auditflow_api_key') || sessionStorage.getItem('auditflow_api_key');
+let isDemoMode = !savedApiKey;
 
-if (savedApiKey) {
-    apiKeyModal.style.display = 'none';
-} else {
-    apiKeyModal.style.display = 'flex';
-}
+// Always display the Secure API Configuration on startup
+apiKeyModal.style.display = 'flex';
 
 const openApiKeyBtn = document.getElementById('open-api-key-btn');
 if (openApiKeyBtn) {
     openApiKeyBtn.addEventListener('click', () => {
+        modalApiKeyInput.value = '';
+        validationMessage.style.display = 'none';
         apiKeyModal.style.display = 'flex';
     });
 }
@@ -609,6 +620,7 @@ modalSaveBtn.addEventListener('click', async () => {
             localStorage.removeItem('auditflow_api_key');
         }
         savedApiKey = key;
+        isDemoMode = false;
         apiKeyModal.style.display = 'none';
         showToast('API Connected Successfully');
     } else {
@@ -623,6 +635,7 @@ modalSaveBtn.addEventListener('click', async () => {
 
 demoModeBtn.addEventListener('click', () => {
     savedApiKey = ''; // Uses backend fallback (.env)
+    isDemoMode = true;
     apiKeyModal.style.display = 'none';
     showToast('Demo Mode Enabled');
 });

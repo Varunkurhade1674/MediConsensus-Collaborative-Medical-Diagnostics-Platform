@@ -14,13 +14,90 @@ from octochains import Agent, Aggregator, Engine
 import datetime
 from pydantic import BaseModel
 
-
-
 # Import our new prompts file
 import prompts
 
 load_dotenv()
 os.environ["GROQ_API_KEY"] = os.getenv("GROQ_API_KEY", "your-key-here")
+
+def get_chat_model(provider: str = None, api_key: str = None, model: str = None, temperature: float = 0):
+    # Determine API key
+    if not api_key:
+        if provider == "Groq":
+            api_key = os.environ.get("GROQ_API_KEY")
+        elif provider == "OpenRouter":
+            api_key = os.environ.get("OPENROUTER_API_KEY") or os.environ.get("OPENAI_API_KEY")
+        elif provider == "OpenAI":
+            api_key = os.environ.get("OPENAI_API_KEY")
+        elif provider == "Google Gemini":
+            api_key = os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
+        
+        # If still no key, fallback to first available key
+        if not api_key or api_key == "your-key-here":
+            api_key = (
+                os.environ.get("GROQ_API_KEY") or 
+                os.environ.get("OPENROUTER_API_KEY") or 
+                os.environ.get("OPENAI_API_KEY") or 
+                os.environ.get("GOOGLE_API_KEY") or 
+                os.environ.get("GEMINI_API_KEY")
+            )
+
+    if api_key:
+        api_key = api_key.strip()
+
+    # Determine provider if not specified
+    if not provider and api_key:
+        if api_key.startswith("gsk_"):
+            provider = "Groq"
+        elif api_key.startswith("sk-or-"):
+            provider = "OpenRouter"
+        elif api_key.startswith("sk-"):
+            provider = "OpenAI"
+        elif api_key.startswith("AIzaSy"):
+            provider = "Google Gemini"
+        else:
+            provider = "Groq"
+    elif not provider:
+        provider = "Groq"
+
+    # If the user passed the default Groq model parameter but selected a different provider, override it
+    if model == "llama-3.3-70b-versatile" and provider != "Groq":
+        model = None
+
+    if provider == "Groq":
+        from langchain_groq import ChatGroq
+        key_to_use = api_key if (api_key and api_key != "your-key-here") else os.environ.get("GROQ_API_KEY")
+        model_name = model or "llama-3.3-70b-versatile"
+        return ChatGroq(temperature=temperature, model=model_name, api_key=key_to_use)
+
+    elif provider == "OpenRouter":
+        from langchain_openai import ChatOpenAI
+        key_to_use = api_key if api_key else (os.environ.get("OPENROUTER_API_KEY") or os.environ.get("OPENAI_API_KEY"))
+        model_name = model or "meta-llama/llama-3.3-70b-instruct"
+        return ChatOpenAI(
+            temperature=temperature,
+            model=model_name,
+            api_key=key_to_use,
+            openai_api_base="https://openrouter.ai/api/v1"
+        )
+
+    elif provider == "OpenAI":
+        from langchain_openai import ChatOpenAI
+        key_to_use = api_key if api_key else os.environ.get("OPENAI_API_KEY")
+        model_name = model or "gpt-4o-mini"
+        return ChatOpenAI(temperature=temperature, model=model_name, api_key=key_to_use)
+
+    elif provider == "Google Gemini":
+        from langchain_google_genai import ChatGoogleGenerativeAI
+        key_to_use = api_key if api_key else (os.environ.get("GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY"))
+        model_name = model or "gemini-1.5-flash"
+        return ChatGoogleGenerativeAI(temperature=temperature, model=model_name, google_api_key=key_to_use)
+
+    else:
+        from langchain_groq import ChatGroq
+        key_to_use = api_key if (api_key and api_key != "your-key-here") else os.environ.get("GROQ_API_KEY")
+        model_name = model or "llama-3.3-70b-versatile"
+        return ChatGroq(temperature=temperature, model=model_name, api_key=key_to_use)
 
 def parse_confidence_and_clean(text: str) -> tuple[str, int]:
     match = re.search(r"Confidence\s+Score:\s*(\d+)%", text, re.IGNORECASE)
@@ -45,48 +122,42 @@ session_store = {}
 class Cardiologist(Agent):
     def __init__(self, model="llama-3.3-70b-versatile", api_key=None):
         super().__init__(role="Cardiologist", goal="Identify arrhythmias or structural heart issues." , input_description="Medical Report")
-        api_key_to_use = api_key if api_key else os.environ.get("GROQ_API_KEY")
-        self.llm = ChatGroq(temperature=0, model=model, api_key=api_key_to_use)
+        self.llm = get_chat_model(api_key=api_key, model=model, temperature=0)
     def execute(self, medical_report: str) -> str:
         return self.llm.invoke(prompts.CARDIOLOGIST_PROMPT.format(medical_report=medical_report)).content
 
 class Psychologist(Agent):
     def __init__(self, model="llama-3.3-70b-versatile", api_key=None):
         super().__init__(role="Psychologist", goal="Identify mental health issues.", input_description="Medical Report")
-        api_key_to_use = api_key if api_key else os.environ.get("GROQ_API_KEY")
-        self.llm = ChatGroq(temperature=0, model=model, api_key=api_key_to_use)
+        self.llm = get_chat_model(api_key=api_key, model=model, temperature=0)
     def execute(self, medical_report: str) -> str:
         return self.llm.invoke(prompts.PSYCHOLOGIST_PROMPT.format(medical_report=medical_report)).content
 
 class Pulmonologist(Agent):
     def __init__(self, model="llama-3.3-70b-versatile", api_key=None):
         super().__init__(role="Pulmonologist", goal="Identify respiratory issues.", input_description="Medical Report")
-        api_key_to_use = api_key if api_key else os.environ.get("GROQ_API_KEY")
-        self.llm = ChatGroq(temperature=0, model=model, api_key=api_key_to_use)
+        self.llm = get_chat_model(api_key=api_key, model=model, temperature=0)
     def execute(self, medical_report: str) -> str:
         return self.llm.invoke(prompts.PULMONOLOGIST_PROMPT.format(medical_report=medical_report)).content
 
 class Neurologist(Agent):
     def __init__(self, model="llama-3.3-70b-versatile", api_key=None):
         super().__init__(role="Neurologist", goal="Identify neurological issues.", input_description="Medical Report")
-        api_key_to_use = api_key if api_key else os.environ.get("GROQ_API_KEY")
-        self.llm = ChatGroq(temperature=0, model=model, api_key=api_key_to_use)
+        self.llm = get_chat_model(api_key=api_key, model=model, temperature=0)
     def execute(self, medical_report: str) -> str:
         return self.llm.invoke(prompts.NEUROLOGIST_PROMPT.format(medical_report=medical_report)).content
 
 class ChiefMedicalOfficer(Agent):
     def __init__(self, model="llama-3.3-70b-versatile", api_key=None):
         super().__init__(role="ChiefMedicalOfficer", goal="Determine which specialists are needed for the case.", input_description="Medical Report")
-        api_key_to_use = api_key if api_key else os.environ.get("GROQ_API_KEY")
-        self.llm = ChatGroq(temperature=0, model=model, api_key=api_key_to_use)
+        self.llm = get_chat_model(api_key=api_key, model=model, temperature=0)
     def execute(self, medical_report: str) -> str:
         return self.llm.invoke(prompts.SUPERVISOR_PROMPT.format(medical_report=medical_report)).content
 
 class MultidisciplinaryTeam(Aggregator):
     def __init__(self, model="llama-3.3-70b-versatile", api_key=None):
         super().__init__(role="MultidisciplinaryTeam", goal="Synthesize reports.")
-        api_key_to_use = api_key if api_key else os.environ.get("GROQ_API_KEY")
-        self.llm = ChatGroq(temperature=0, model=model, api_key=api_key_to_use)
+        self.llm = get_chat_model(api_key=api_key, model=model, temperature=0)
         
     def execute(self, agent_reports: dict) -> str:
         prompt = prompts.AGGREGATOR_PROMPT.format(
@@ -308,8 +379,7 @@ async def chat_with_team(session_id: str = Form(...), message: str = Form(...), 
     if not context: return JSONResponse({"error": "Session not found"}, status_code=404)
     
     prompt = prompts.CHAT_PROMPT.format(traces=context['traces'], consensus=context['consensus'], message=message)
-    api_key_to_use = api_key if api_key else os.environ.get("GROQ_API_KEY")
-    response = ChatGroq(temperature=0.3, model="llama-3.3-70b-versatile", api_key=api_key_to_use).invoke(prompt)
+    response = get_chat_model(api_key=api_key, temperature=0.3).invoke(prompt)
     return {"reply": response.content}
 
 class KeyValidationRequest(BaseModel):
@@ -320,8 +390,7 @@ class KeyValidationRequest(BaseModel):
 async def validate_api_key(req: KeyValidationRequest):
     try:
         api_key = req.api_key
-        # We test with a lightweight request
-        test_client = ChatGroq(temperature=0, model="llama-3.3-70b-versatile", api_key=api_key)
+        test_client = get_chat_model(provider=req.provider, api_key=api_key, temperature=0)
         response = test_client.invoke("Reply with 'OK'")
         
         if response and response.content:
