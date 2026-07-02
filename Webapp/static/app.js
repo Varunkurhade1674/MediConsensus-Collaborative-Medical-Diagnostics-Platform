@@ -521,14 +521,16 @@ const toastContainer = document.getElementById('toast-container');
 let savedApiKey = localStorage.getItem('auditflow_api_key') || sessionStorage.getItem('auditflow_api_key');
 let isDemoMode = !savedApiKey;
 
+if (savedApiKey) {
+    modalApiKeyInput.value = savedApiKey;
+}
+
 // Always display the Secure API Configuration on startup
 apiKeyModal.style.display = 'flex';
 
 const openApiKeyBtn = document.getElementById('open-api-key-btn');
 if (openApiKeyBtn) {
     openApiKeyBtn.addEventListener('click', () => {
-        modalApiKeyInput.value = '';
-        validationMessage.style.display = 'none';
         apiKeyModal.style.display = 'flex';
     });
 }
